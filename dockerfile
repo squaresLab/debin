@@ -22,7 +22,7 @@ RUN cd Nice2Predict && \
     bazel build //... && \
     cd ..
 
-# install BAP
+# install BAP dependencies
 RUN apt-get -y install \
     build-essential \
     libx11-dev \
@@ -32,9 +32,12 @@ RUN apt-get -y install \
     sudo \
     unzip \
     wget \
-    opam
+    curl
+
+# install opam from script
+RUN sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
 RUN opam init --auto-setup --comp=4.05.0 --yes
-RUN opam depext --install bap=1.4.0 --yes
+RUN opam depext --install bap --yes
 RUN opam install yojson --yes
 
 # copy debin
