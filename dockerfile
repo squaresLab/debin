@@ -31,12 +31,15 @@ RUN apt-get -y install \
     python-pip \
     sudo \
     unzip \
-    wget \
-    curl
+    wget
 
-# install opam from script
-RUN sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
-RUN opam init --auto-setup --comp=4.05.0 --yes
+# Download opam binary
+RUN wget https://github.com/ocaml/opam/releases/download/2.0.4/opam-2.0.4-x86_64-linux
+RUN mv opam-2.0.4-x86_64-linux /usr/local/bin/opam
+RUN chmod a+x /usr/local/bin/opam
+RUN opam init --disable-sandboxing --comp=4.05.0 --yes
+RUN eval $(opam env)
+run opam install depext --yes
 RUN opam depext --install bap --yes
 RUN opam install yojson --yes
 
@@ -66,7 +69,7 @@ WORKDIR /debin/cpp
 RUN g++ -c -fPIC modify_elf.cpp -o modify_elf.o -I./ && \
     g++ modify_elf.o -shared -o modify_elf.so
 
-RUN echo "eval `opam config env`" >> /etc/bash.bashrc
+RUN echo "eval $(opam env)" >> /etc/bash.bashrc
 
 ADD ./examples /debin/examples
 ADD ./models /debin/models
