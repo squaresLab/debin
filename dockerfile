@@ -29,7 +29,7 @@ RUN apt-get install -y \
     wget
 
 RUN groupadd -g 999 debinuser && \
-    useradd -r -m -u 999 -g debinuser debinuser
+    useradd -r -m -d /debinuser -u 999 -g debinuser debinuser
 
 # install bazel
 RUN wget https://github.com/bazelbuild/bazel/releases/download/0.19.2/bazel-0.19.2-linux-x86_64
@@ -48,11 +48,14 @@ RUN cd Nice2Predict && \
 
 # Download opam binary
 USER root
+RUN mkdir /opam
+RUN chown debinuser:debinuser /opam
 RUN wget https://github.com/ocaml/opam/releases/download/2.0.4/opam-2.0.4-x86_64-linux
 RUN mv opam-2.0.4-x86_64-linux /usr/local/bin/opam
 RUN chmod a+x /usr/local/bin/opam
 
 USER debinuser
+RUN echo "eval $(opam env)" >> /debinuser/.bashrc
 RUN opam init --disable-sandboxing --comp=4.05.0 --yes
 RUN eval $(opam env)
 run opam install depext --yes
@@ -85,8 +88,6 @@ RUN rm -rf ocaml/_build loc.plugin && \
 WORKDIR /debin/cpp
 RUN g++ -c -fPIC modify_elf.cpp -o modify_elf.o -I./ && \
     g++ modify_elf.o -shared -o modify_elf.so
-
-RUN echo "eval $(opam env)" >> /home/debinuser/.bashrc
 
 USER root
 ADD ./examples /debin/examples
