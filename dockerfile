@@ -1,5 +1,7 @@
 FROM ubuntu:16.04
 
+SHELL ["/bin/bash", "-c"]
+
 RUN apt-get -y update
 RUN apt-get install -y \
     git \
@@ -11,7 +13,6 @@ RUN apt-get install -y \
     libx11-dev \
     m4 \
     pkg-config \
-    python-pip \
     sudo \
     unzip \
     wget \
@@ -24,9 +25,8 @@ RUN apt-get install -y \
     m4 \
     perl \
     zlib1g-dev \
-    python3 \
-    python3-pip \
     wget
+
 
 RUN groupadd -g 999 debinuser && \
     useradd -r -m -d /debinuser -u 999 -g debinuser debinuser
@@ -58,7 +58,7 @@ USER debinuser
 RUN echo "eval $(opam env)" >> /debinuser/.bashrc
 RUN opam init --disable-sandboxing --comp=4.05.0 --yes
 RUN eval $(opam env)
-run opam install depext --yes
+RUN opam install depext --yes
 RUN opam depext --install bap --yes
 RUN opam install yojson --yes
 
@@ -71,11 +71,9 @@ ADD ./requirements.txt /debin/requirements.txt
 
 WORKDIR /debin
 
-# install python dependencies
-RUN pip3 install -r requirements.txt
-
 USER root
 RUN chown -R debinuser:debinuser /debin
+RUN ls /debinuser
 
 # build bap plugin
 USER debinuser
@@ -94,6 +92,7 @@ ADD ./examples /debin/examples
 ADD ./models /debin/models
 RUN chown -R debinuser:debinuser /debin/examples
 RUN chown -R debinuser:debinuser /debin/models
+
 
 USER debinuser
 WORKDIR /debin
