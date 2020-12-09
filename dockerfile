@@ -7,6 +7,7 @@ RUN apt-get install -y \
     libcurl4-openssl-dev \
     libgoogle-glog-dev \
     libgflags-dev \
+    libncurses5-dev \
     build-essential \
     libx11-dev \
     m4 \
@@ -56,7 +57,7 @@ USER debinuser
 RUN opam init --disable-sandboxing --comp=4.05.0 --yes
 RUN eval $(opam env)
 run opam install depext --yes
-RUN opam depext --install bap --yes
+RUN opam depext --install bap=1.5.0 --yes
 RUN opam install yojson --yes
 
 # copy debin
@@ -67,11 +68,16 @@ ADD ./c_valid_labels /debin/c_valid_labels
 ADD ./requirements.txt /debin/requirements.txt
 
 WORKDIR /debin
+USER root
 
 # install python dependencies
+RUN apt-get update -y && apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update -y
+RUN apt-get install python3.7 -y
+RUN apt-get -y install python3-pip
+RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-USER root
 RUN chown -R debinuser:debinuser /debin
 
 # build bap plugin
